@@ -1,27 +1,32 @@
-version: 2
 jobs:
   build:
-    docker:
-      # specify the version you desire here
-      - image: circleci/node:7.10
-      
-    working_directory: ~/Projects/serverless-circleci/
-
+    ...
+    
     steps:
       - checkout
-
+      
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+            - dependencies-cache-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - dependencies-cache
+      
+      - run:
+          name: Install Serverless CLI and dependencies
+          command: |
+            sudo npm i -g serverless
+            npm install
 
-      - run: npm install
-
+      #- run: 
+      #    name: Run tests with code coverage
+      #    command: npm test --coverage
+       
+      - run:
+          name: Deploy application 
+          command: sls deploy 
+      
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
-        
-      - run: node handler.js
+          key: dependencies-cache-{{ checksum "package.json" }}
